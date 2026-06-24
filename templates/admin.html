@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% set active_page = 'admin' %}
+
+{% block title %}ResumeMatch AI — Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="flex flex-col gap-8">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 fade-in-up">
+    <div class="flex items-center gap-3">
+      <div class="w-12 h-12 bg-tertiary-container text-on-tertiary-container rounded-2xl flex items-center justify-center shadow-lg">
+        <span class="material-symbols-outlined text-[28px]">dashboard</span>
+      </div>
+      <div>
+        <h1 class="font-headline-lg text-headline-lg text-on-surface">Admin Dashboard</h1>
+        <p class="text-on-surface-variant font-body-md mt-1">Manage job postings and evaluate talent.</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <button onclick="document.getElementById('newJobDrawer').classList.remove('translate-x-full')" class="btn-primary flex-1 md:flex-none justify-center">
+        <span class="material-symbols-outlined">add</span>
+        New Job
+      </button>
+      <a href="{{ url_for('admin_logout') }}" class="btn-outline flex-1 md:flex-none justify-center border-error text-error hover:bg-error/10">
+        <span class="material-symbols-outlined">logout</span>
+        Logout
+      </a>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <!-- Left Column: Create Job -->
+    <div class="lg:col-span-4 fade-in-up-delay-1">
+      <div class="glass-card rounded-2xl p-6 sticky top-[100px]">
+        <div class="flex items-center gap-2 mb-6">
+          <span class="material-symbols-outlined text-primary">add_circle</span>
+          <h2 class="font-headline-md text-on-surface">Create New Job</h2>
+        </div>
+        
+        <form id="jobForm" class="flex flex-col gap-5">
+          <div class="relative">
+            <input type="text" id="jobTitle" class="floating-input w-full bg-surface-container-lowest border-outline-variant rounded-lg px-4 pt-6 pb-2 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary transition-colors" placeholder=" " required />
+            <label for="jobTitle" class="floating-label absolute left-4 top-4 text-outline-variant transition-all pointer-events-none">Job Title (e.g. Software Engineer)</label>
+          </div>
+
+          <div class="relative">
+            <input type="text" id="skillsInput" class="floating-input w-full bg-surface-container-lowest border-outline-variant rounded-lg px-4 pt-6 pb-2 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary transition-colors" placeholder=" " />
+            <label for="skillsInput" class="floating-label absolute left-4 top-4 text-outline-variant transition-all pointer-events-none">Required Skills (comma separated)</label>
+          </div>
+          
+          <div id="skillTags" class="flex flex-wrap gap-2 empty:hidden"></div>
+
+          <div class="relative">
+            <textarea id="jobDescription" rows="4" class="floating-input w-full bg-surface-container-lowest border-outline-variant rounded-lg px-4 pt-6 pb-2 text-on-surface focus:border-primary focus:ring-1 focus:ring-primary transition-colors resize-none" placeholder=" "></textarea>
+            <label for="jobDescription" class="floating-label absolute left-4 top-4 text-outline-variant transition-all pointer-events-none">Job Description (Optional)</label>
+          </div>
+
+          <button type="submit" id="saveJobBtn" class="btn-primary w-full justify-center disabled:opacity-50 mt-2">
+            Save Job
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Right Column: Job List -->
+    <div class="lg:col-span-8 fade-in-up-delay-2">
+      <div class="glass-card rounded-2xl p-6 h-full flex flex-col">
+        <div class="flex items-center justify-between mb-6">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-tertiary">work_history</span>
+            <h2 class="font-headline-md text-on-surface">Active Jobs</h2>
+          </div>
+          <span id="jobsCount" class="px-3 py-1 bg-surface-container text-on-surface-variant font-label-md rounded-full">0 jobs</span>
+        </div>
+
+        <!-- Loading State -->
+        <div id="jobsLoading" class="flex flex-col gap-4">
+          <div class="skeleton h-24 rounded-xl w-full"></div>
+          <div class="skeleton h-24 rounded-xl w-full"></div>
+          <div class="skeleton h-24 rounded-xl w-full"></div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden flex-1 flex flex-col items-center justify-center text-center py-12">
+          <div class="w-16 h-16 bg-surface-container text-outline rounded-full flex items-center justify-center mb-4">
+            <span class="material-symbols-outlined text-[32px]">work_off</span>
+          </div>
+          <h3 class="font-headline-md text-on-surface mb-2">No Jobs Found</h3>
+          <p class="text-on-surface-variant">Create your first job posting using the form.</p>
+        </div>
+
+        <!-- Jobs List -->
+        <div id="jobsList" class="hidden flex-col gap-4"></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{% endblock %}

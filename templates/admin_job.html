@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% set active_page = 'admin' %}
+
+{% block title %}ResumeMatch AI — Job Details{% endblock %}
+
+{% block content %}
+<div class="flex flex-col gap-6" data-job-id="{{ job_id }}" id="jobContainer">
+  <!-- Top Navigation -->
+  <div class="fade-in-up flex items-center justify-between">
+    <a href="{{ url_for('admin') }}" class="inline-flex items-center gap-2 text-primary hover:underline font-label-md mb-4">
+      <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+      Back to Jobs
+    </a>
+    <a href="{{ url_for('admin_logout') }}" class="inline-flex items-center gap-2 text-error hover:underline font-label-md mb-4">
+      <span class="material-symbols-outlined text-[18px]">logout</span>
+      Logout
+    </a>
+  </div>
+
+  <!-- Loading State -->
+  <div id="pageLoading" class="glass-card rounded-2xl p-8 flex flex-col items-center justify-center min-h-[300px]">
+    <div class="loading-spinner mb-4"></div>
+    <p class="text-on-surface-variant font-headline-md">Ranking Candidates...</p>
+  </div>
+
+  <!-- Main Content (Hidden until loaded) -->
+  <div id="pageContent" class="hidden flex-col gap-8">
+    
+    <!-- Job Details Card -->
+    <div class="glass-card rounded-2xl p-6 md:p-8 relative overflow-hidden fade-in-up-delay-1">
+      <div class="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
+        <span class="material-symbols-outlined text-[120px]">work</span>
+      </div>
+      
+      <div class="flex flex-col md:flex-row md:items-start justify-between gap-6 relative z-10">
+        <div>
+          <h1 id="jobTitleDisplay" class="font-headline-lg text-on-surface mb-2">Loading...</h1>
+          <div class="flex items-center gap-4 text-sm text-on-surface-variant font-label-md mb-6">
+            <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">calendar_today</span> <span id="jobDate">...</span></span>
+            <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">group</span> <span id="candidateCount">0 candidates</span></span>
+          </div>
+          
+          <h3 class="font-label-md text-on-surface mb-2">Required Skills</h3>
+          <div id="jobSkills" class="flex flex-wrap gap-2 mb-4"></div>
+          
+          <div id="jobDescriptionContainer" class="hidden">
+            <h3 class="font-label-md text-on-surface mb-2 mt-4">Description</h3>
+            <p id="jobDescriptionDisplay" class="text-on-surface-variant whitespace-pre-line text-sm"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rankings Section -->
+    <div class="fade-in-up-delay-2">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="font-headline-md text-on-surface flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary">leaderboard</span>
+          Candidate Rankings
+        </h2>
+      </div>
+
+      <div class="glass-card rounded-2xl overflow-hidden border border-outline-variant/30">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse min-w-[800px]">
+            <thead>
+              <tr class="bg-surface-container-low border-b border-outline-variant/30">
+                <th class="px-6 py-4 font-label-md text-on-surface-variant w-16 text-center">Rank</th>
+                <th class="px-6 py-4 font-label-md text-on-surface-variant">Candidate Info</th>
+                <th class="px-6 py-4 font-label-md text-on-surface-variant">Match Score</th>
+                <th class="px-6 py-4 font-label-md text-on-surface-variant">ATS Score</th>
+                <th class="px-6 py-4 font-label-md text-on-surface-variant">Recommendation</th>
+                <th class="px-6 py-4 font-label-md text-on-surface-variant text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="rankingsTableBody">
+              <!-- JS populates this -->
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- Empty State for Rankings -->
+        <div id="emptyRankings" class="hidden py-12 text-center flex-col items-center justify-center">
+          <div class="w-16 h-16 bg-surface-container text-outline rounded-full flex items-center justify-center mx-auto mb-4">
+            <span class="material-symbols-outlined text-[32px]">group_off</span>
+          </div>
+          <h3 class="font-headline-md text-on-surface mb-2">No Candidates Found</h3>
+          <p class="text-on-surface-variant">There are no candidates in the talent pool yet.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Drawer for Candidate Details -->
+<div id="candidateDrawer" class="fixed inset-y-0 right-0 w-full md:w-[600px] bg-surface shadow-2xl z-[100] transform translate-x-full transition-transform duration-300 flex flex-col border-l border-outline-variant/20">
+  <div class="p-6 border-b border-outline-variant/20 flex items-center justify-between bg-surface-container-low">
+    <h2 class="font-headline-md text-on-surface">Candidate Analysis</h2>
+    <button id="closeDrawerBtn" class="btn-icon text-on-surface-variant hover:text-error" aria-label="Close details">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+  </div>
+  <div class="p-6 overflow-y-auto flex-1 flex flex-col gap-6" id="drawerContent">
+    <!-- Populated by JS -->
+  </div>
+</div>
+<!-- Drawer Overlay -->
+<div id="drawerOverlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[99] hidden opacity-0 transition-opacity duration-300"></div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin_job.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% set active_page = 'home' %}
+
+{% block title %}ResumeMatch AI — Home{% endblock %}
+
+{% block content %}
+<div class="relative min-h-[60vh] flex flex-col items-center justify-center text-center">
+  <!-- Decorative floating elements -->
+  <div class="absolute top-10 left-10 w-32 h-32 bg-primary/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 floating-element hidden md:block"></div>
+  <div class="absolute bottom-10 right-10 w-48 h-48 bg-tertiary-container/20 rounded-full mix-blend-multiply filter blur-3xl opacity-70 floating-element hidden md:block" style="animation-delay: 2s;"></div>
+
+  <div class="relative z-10 max-w-3xl fade-in-up">
+    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface-container border border-outline-variant/30 text-label-md font-label-md text-on-surface-variant mb-6 shadow-sm">
+      <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+      Welcome to the Next Generation Hiring Platform
+    </div>
+
+    <h1 class="font-display text-display text-on-surface mb-6">
+      AI-Powered <br class="hidden sm:block"/>
+      <span class="gradient-text drop-shadow-sm">Resume Screening</span>
+    </h1>
+
+    <p class="font-body-lg text-body-lg text-on-surface-variant mb-10 max-w-2xl mx-auto leading-relaxed">
+      Whether you are a candidate looking to join our talent pool or an admin looking to find the perfect fit for your open roles, ResumeMatch AI simplifies the process.
+    </p>
+
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+      <a href="{{ url_for('candidate') }}" class="btn-primary text-lg px-8 py-4 w-full sm:w-auto flex items-center justify-center gap-2 hover:scale-105 transition-transform shadow-lg shadow-primary/25">
+        <span class="material-symbols-outlined">person</span>
+        I am a Candidate
+      </a>
+      <a href="{{ url_for('admin') }}" class="px-8 py-4 rounded-full font-label-md bg-surface-container border border-outline-variant/50 text-on-surface hover:bg-surface-variant transition-colors w-full sm:w-auto flex items-center justify-center gap-2">
+        <span class="material-symbols-outlined">admin_panel_settings</span>
+        I am an Admin
+      </a>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
