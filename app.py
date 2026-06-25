@@ -25,14 +25,16 @@ from flask_cors import CORS
 
 from config import ALLOWED_EXTENSIONS, MAX_CONTENT_LENGTH, UPLOAD_FOLDER
 from database.db_operations import (
+    delete_job,
     get_job,
     get_jobs,
     save_job,
     save_resume,
     get_all_resumes,
     get_resumes_by_job,
+    update_resume_status,
+    get_applications_by_email,
 )
-from services.ats_scorer import calculate_ats_score
 from services.pdf_parser import parse_resume
 from services.skill_matcher import match_skills
 
@@ -168,6 +170,15 @@ def api_get_jobs():
     except RuntimeError as exc:
         return _error(str(exc), 500)
 
+@app.route("/api/jobs/<job_id>", methods=["DELETE"])
+def api_delete_job(job_id: str):
+    """Delete a job posting and all associated resumes."""
+    try:
+        delete_job(job_id)
+        return jsonify({"message": "Job deleted successfully"}), 200
+    except RuntimeError as exc:
+        return _error(str(exc), 500)
+
 
 # ---------------------------------------------------------------------------
 # API routes — Candidate Upload
@@ -260,17 +271,6 @@ def api_get_rankings(job_id: str):
                 resume.get("resume_text", "")
             )
             
-            # ATS score
-            ats_result = calculate_ats_score(
-                resume.get("resume_text", ""),
-                resume.get("candidate_name"),
-                resume.get("email"),
-            )
-            
-            # Total score logic: we use match_score as the primary ranking factor,
-            # but we can return both so the frontend can display them.
-            total_score = match_result["match_score"]
-            
             rankings.append({
                 "resume_id": resume["id"],
                 "candidate_name": resume.get("candidate_name", "Unknown"),
@@ -278,21 +278,52 @@ def api_get_rankings(job_id: str):
                 "phone": resume.get("phone"),
                 "uploaded_at": resume.get("uploaded_at"),
                 "match_score": match_result["match_score"],
-                "ats_score": ats_result["ats_score"],
-                "total_score": total_score,
                 "matched_skills": match_result["matched_skills"],
                 "missing_skills": match_result["missing_skills"],
-                "recommendation": match_result["recommendation"]
+                "recommendation": match_result["recommendation"],
+                "status": resume.get("status", "pending"),
             })
             
-        # Sort by total_score descending
-        rankings.sort(key=lambda x: x["total_score"], reverse=True)
+        # Sort by match_score descending
+        rankings.sort(key=lambda x: x["match_score"], reverse=True)
         
         return jsonify({
             "job": job,
             "rankings": rankings
         }), 200
 
+    except RuntimeError as exc:
+        return _error(str(exc), 500)
+
+
+@app.route("/api/admin/resumes/<resume_id>/status", methods=["PATCH"])
+def api_update_resume_status(resume_id: str):
+    """Accept or reject a candidate."""
+    data = request.get_json(silent=True)
+    if not data:
+        return _error("Request body must be JSON.")
+    
+    status = data.get("status", "").strip().lower()
+    if status not in ("accepted", "rejected", "pending"):
+        return _error("Status must be 'accepted', 'rejected', or 'pending'.")
+    
+    try:
+        updated = update_resume_status(resume_id, status)
+        return jsonify({"message": f"Candidate {status}", "resume": updated}), 200
+    except RuntimeError as exc:
+        return _error(str(exc), 500)
+
+
+@app.route("/api/candidate/status", methods=["GET"])
+def api_candidate_status():
+    """Return all applications for a given email."""
+    email = request.args.get("email", "").strip()
+    if not email:
+        return _error("Email is required.")
+    
+    try:
+        applications = get_applications_by_email(email)
+        return jsonify({"applications": applications}), 200
     except RuntimeError as exc:
         return _error(str(exc), 500)
 

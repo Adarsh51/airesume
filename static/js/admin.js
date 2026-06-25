@@ -112,13 +112,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       jobsList.innerHTML = jobs.map(job => `
-        <div class="p-5 border border-outline-variant/30 rounded-xl hover:bg-surface-container-low transition-colors cursor-pointer group" onclick="window.location.href='/admin/jobs/${job.id}'">
+        <div class="p-5 border border-outline-variant/30 rounded-xl hover:bg-surface-container-low transition-colors group relative">
           <div class="flex justify-between items-start mb-2">
-            <h3 class="font-headline-md text-on-surface group-hover:text-primary transition-colors">${job.title}</h3>
-            <span class="text-xs text-on-surface-variant font-label-md">${formatDate(job.created_at)}</span>
+            <h3 class="font-headline-md text-on-surface group-hover:text-primary transition-colors cursor-pointer" onclick="window.location.href='/admin/jobs/${job.id}'">${job.title}</h3>
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-on-surface-variant font-label-md">${formatDate(job.created_at)}</span>
+              <button onclick="event.stopPropagation(); deleteJob('${job.id}', '${job.title.replace(/'/g, "\\'")}')" class="btn-icon text-on-surface-variant hover:text-error hover:bg-error/10 transition-colors" title="Delete Job">
+                <span class="material-symbols-outlined text-[20px]">delete</span>
+              </button>
+            </div>
           </div>
-          <p class="text-sm text-on-surface-variant mb-3 line-clamp-2">${job.description || 'No description provided.'}</p>
-          <div class="flex flex-wrap gap-1">
+          <p class="text-sm text-on-surface-variant mb-3 line-clamp-2 cursor-pointer" onclick="window.location.href='/admin/jobs/${job.id}'">${job.description || 'No description provided.'}</p>
+          <div class="flex flex-wrap gap-1 cursor-pointer" onclick="window.location.href='/admin/jobs/${job.id}'">
             ${job.required_skills.split(',').slice(0, 5).map(s => `
               <span class="px-2 py-0.5 bg-surface-container text-xs rounded-md text-on-surface-variant border border-outline-variant/20">${s.trim()}</span>
             `).join('')}
@@ -136,6 +141,22 @@ document.addEventListener('DOMContentLoaded', async () => {
       showToast('Failed to load jobs: ' + error.message, 'error');
     }
   }
+
+  // ---- DELETE JOB ----
+  window.deleteJob = async function(jobId, jobTitle) {
+    if (!confirm(`Are you sure you want to delete "${jobTitle}"? This will also delete all candidate applications for this job.`)) return;
+
+    showLoading('Deleting job...');
+    try {
+      await apiRequest(`/api/jobs/${jobId}`, { method: 'DELETE' });
+      hideLoading();
+      showToast('Job deleted successfully!', 'success');
+      loadJobs();
+    } catch (error) {
+      hideLoading();
+      showToast(error.message || 'Failed to delete job', 'error');
+    }
+  };
 
   // Init
   loadJobs();

@@ -60,6 +60,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  function getStatusHtml(r) {
+    const status = (r.status || 'pending').toLowerCase();
+    if (status === 'accepted') {
+      return `<span class="px-3 py-1.5 rounded-lg text-xs font-label-md bg-[#1B5E20]/10 text-[#1B5E20] border border-[#1B5E20]/20 inline-flex items-center gap-1">
+        <span class="material-symbols-outlined text-[14px]">check_circle</span> Accepted
+      </span>`;
+    }
+    if (status === 'rejected') {
+      return `<span class="px-3 py-1.5 rounded-lg text-xs font-label-md bg-error/10 text-error border border-error/20 inline-flex items-center gap-1">
+        <span class="material-symbols-outlined text-[14px]">cancel</span> Rejected
+      </span>`;
+    }
+    // pending — show accept/reject buttons
+    return `
+      <div class="flex items-center gap-2 justify-center">
+        <button onclick="event.stopPropagation(); updateStatus('${r.resume_id}', 'accepted')" class="px-3 py-1.5 rounded-lg text-xs font-label-md bg-[#1B5E20]/10 text-[#1B5E20] border border-[#1B5E20]/30 hover:bg-[#1B5E20]/20 transition-colors inline-flex items-center gap-1" title="Accept">
+          <span class="material-symbols-outlined text-[14px]">check</span> Accept
+        </button>
+        <button onclick="event.stopPropagation(); updateStatus('${r.resume_id}', 'rejected')" class="px-3 py-1.5 rounded-lg text-xs font-label-md bg-error/10 text-error border border-error/30 hover:bg-error/20 transition-colors inline-flex items-center gap-1" title="Reject">
+          <span class="material-symbols-outlined text-[14px]">close</span> Reject
+        </button>
+      </div>
+    `;
+  }
+
   function renderRankings(rankings) {
     if (!rankings || rankings.length === 0) {
       document.querySelector('table').parentElement.classList.add('hidden');
@@ -88,17 +113,12 @@ document.addEventListener('DOMContentLoaded', async () => {
           </div>
         </td>
         <td class="px-6 py-4">
-          <span class="font-label-sm ${r.ats_score >= 80 ? 'text-[#1B5E20]' : r.ats_score >= 60 ? 'text-[#B8860B]' : 'text-error'}">${r.ats_score}/100</span>
-        </td>
-        <td class="px-6 py-4">
           <span class="px-2 py-1 rounded-md text-xs font-label-sm ${getRecommendationBadge(r.recommendation)}">
             ${r.recommendation}
           </span>
         </td>
-        <td class="px-6 py-4 text-right">
-          <button class="btn-icon text-on-surface-variant group-hover:text-primary transition-colors" aria-label="View Details">
-            <span class="material-symbols-outlined">chevron_right</span>
-          </button>
+        <td class="px-6 py-4 text-center" id="status-${r.resume_id}">
+          ${getStatusHtml(r)}
         </td>
       </tr>
     `).join('');
@@ -111,10 +131,39 @@ document.addEventListener('DOMContentLoaded', async () => {
     return 'bg-primary/10 text-primary';
   }
 
+  // ---- STATUS UPDATE ----
+  window.updateStatus = async function(resumeId, status) {
+    try {
+      await apiRequest(`/api/admin/resumes/${resumeId}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status })
+      });
+
+      // Update in-memory data
+      const r = currentRankings.find(x => x.resume_id === resumeId);
+      if (r) r.status = status;
+
+      // Update the cell in-place
+      const cell = document.getElementById(`status-${resumeId}`);
+      if (cell) cell.innerHTML = getStatusHtml(r);
+
+      showToast(`Candidate ${status}!`, 'success');
+    } catch (error) {
+      showToast(error.message || 'Failed to update status', 'error');
+    }
+  };
+
   // ---- DRAWER LOGIC ----
   window.openCandidateDetails = function(resumeId) {
     const r = currentRankings.find(x => x.resume_id === resumeId);
     if (!r) return;
+
+    const statusLabel = (r.status || 'pending').toLowerCase();
+    const statusBadge = statusLabel === 'accepted' 
+      ? '<span class="px-3 py-1.5 rounded-lg text-sm font-label-md bg-[#1B5E20]/10 text-[#1B5E20] border border-[#1B5E20]/20 inline-flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">check_circle</span> Accepted</span>'
+      : statusLabel === 'rejected'
+      ? '<span class="px-3 py-1.5 rounded-lg text-sm font-label-md bg-error/10 text-error border border-error/20 inline-flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">cancel</span> Rejected</span>'
+      : '<span class="px-3 py-1.5 rounded-lg text-sm font-label-md bg-surface-container text-on-surface-variant border border-outline-variant/30 inline-flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">schedule</span> Pending</span>';
 
     drawerContent.innerHTML = `
       <!-- Header Info -->
@@ -131,15 +180,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         </div>
       </div>
 
-      <!-- Scores Grid -->
+      <!-- Status & Score -->
       <div class="grid grid-cols-2 gap-4">
         <div class="bg-surface-container rounded-xl p-4 text-center border border-outline-variant/20">
           <p class="text-sm text-on-surface-variant mb-1">Match Score</p>
           <p class="font-display text-3xl text-primary">${Math.round(r.match_score)}<span class="text-lg text-on-surface-variant">%</span></p>
         </div>
-        <div class="bg-surface-container rounded-xl p-4 text-center border border-outline-variant/20">
-          <p class="text-sm text-on-surface-variant mb-1">ATS Format Score</p>
-          <p class="font-display text-3xl ${r.ats_score >= 80 ? 'text-[#1B5E20]' : 'text-[#B8860B]'}">${r.ats_score}<span class="text-lg text-on-surface-variant">/100</span></p>
+        <div class="bg-surface-container rounded-xl p-4 text-center border border-outline-variant/20 flex flex-col items-center justify-center">
+          <p class="text-sm text-on-surface-variant mb-2">Status</p>
+          ${statusBadge}
         </div>
       </div>
 
@@ -174,6 +223,17 @@ document.addEventListener('DOMContentLoaded', async () => {
           ).join('') : '<span class="text-sm text-on-surface-variant">None</span>'}
         </div>
       </div>
+
+      <!-- Accept/Reject Actions in Drawer -->
+      ${statusLabel === 'pending' ? `
+      <div class="flex gap-3 mt-4 pt-4 border-t border-outline-variant/20">
+        <button onclick="updateStatus('${r.resume_id}', 'accepted'); closeDrawer();" class="btn-primary flex-1 justify-center bg-[#1B5E20] hover:bg-[#2E7D32]">
+          <span class="material-symbols-outlined">check_circle</span> Accept Candidate
+        </button>
+        <button onclick="updateStatus('${r.resume_id}', 'rejected'); closeDrawer();" class="btn-outline flex-1 justify-center border-error text-error hover:bg-error/10">
+          <span class="material-symbols-outlined">cancel</span> Reject Candidate
+        </button>
+      </div>` : ''}
     `;
 
     drawerOverlay.classList.remove('hidden');
@@ -192,6 +252,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }, 300);
   }
 
+  window.closeDrawer = closeDrawer;
   closeDrawerBtn.addEventListener('click', closeDrawer);
   drawerOverlay.addEventListener('click', closeDrawer);
 

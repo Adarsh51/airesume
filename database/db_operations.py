@@ -72,6 +72,18 @@ def get_job(job_id: str) -> dict[str, Any] | None:
         raise RuntimeError(f"Failed to fetch job {job_id}: {exc}") from exc
 
 
+def delete_job(job_id: str) -> None:
+    """Delete a job and all its associated resumes."""
+    try:
+        _require_client()
+        # Delete associated resumes first
+        supabase.table("resumes").delete().eq("job_id", job_id).execute()
+        # Delete the job
+        supabase.table("jobs").delete().eq("id", job_id).execute()
+    except Exception as exc:
+        raise RuntimeError(f"Failed to delete job {job_id}: {exc}") from exc
+
+
 # ── Resumes ──────────────────────────────────────────────────────────────────
 
 def save_resume(
@@ -131,6 +143,39 @@ def get_all_resumes() -> list[dict[str, Any]]:
         return response.data
     except Exception as exc:
         raise RuntimeError(f"Failed to fetch resumes: {exc}") from exc
+
+
+def update_resume_status(resume_id: str, status: str) -> dict[str, Any]:
+    """Update the status of a resume (pending, accepted, rejected)."""
+    try:
+        _require_client()
+        response = (
+            supabase.table("resumes")
+            .update({"status": status})
+            .eq("id", resume_id)
+            .execute()
+        )
+        if not response.data:
+            raise RuntimeError(f"Resume {resume_id} not found.")
+        return response.data[0]
+    except Exception as exc:
+        raise RuntimeError(f"Failed to update resume status: {exc}") from exc
+
+
+def get_applications_by_email(email: str) -> list[dict[str, Any]]:
+    """Return all resume applications for a given email, with job info."""
+    try:
+        _require_client()
+        response = (
+            supabase.table("resumes")
+            .select("id, candidate_name, email, status, uploaded_at, job_id, jobs(title)")
+            .eq("email", email)
+            .order("uploaded_at", desc=True)
+            .execute()
+        )
+        return response.data
+    except Exception as exc:
+        raise RuntimeError(f"Failed to fetch applications for {email}: {exc}") from exc
 
 
 # ── Screening Results ────────────────────────────────────────────────────────

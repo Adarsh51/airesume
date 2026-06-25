@@ -151,3 +151,69 @@ document.addEventListener('DOMContentLoaded', () => {
     checkFormValid();
   });
 });
+
+// ---- APPLICATION STATUS CHECK ----
+async function checkApplicationStatus() {
+  const email = document.getElementById('statusEmail').value.trim();
+  if (!email) {
+    showToast('Please enter your email address', 'error');
+    return;
+  }
+
+  const statusResults = document.getElementById('statusResults');
+  const statusList = document.getElementById('statusList');
+  const statusEmpty = document.getElementById('statusEmpty');
+
+  try {
+    const data = await apiRequest(`/api/candidate/status?email=${encodeURIComponent(email)}`);
+    const applications = data.applications || [];
+
+    statusResults.classList.remove('hidden');
+
+    if (applications.length === 0) {
+      statusList.classList.add('hidden');
+      statusEmpty.classList.remove('hidden');
+      statusEmpty.style.display = 'flex';
+      statusEmpty.style.flexDirection = 'column';
+      statusEmpty.style.alignItems = 'center';
+      return;
+    }
+
+    statusEmpty.classList.add('hidden');
+    statusList.classList.remove('hidden');
+
+    statusList.innerHTML = applications.map(app => {
+      const status = (app.status || 'pending').toLowerCase();
+      const jobTitle = app.jobs ? app.jobs.title : 'Unknown Job';
+      const date = formatDate(app.uploaded_at);
+
+      let statusBadge;
+      if (status === 'accepted') {
+        statusBadge = `<span class="px-3 py-1.5 rounded-lg text-xs font-label-md bg-[#1B5E20]/10 text-[#1B5E20] border border-[#1B5E20]/20 inline-flex items-center gap-1">
+          <span class="material-symbols-outlined text-[14px]">check_circle</span> Accepted
+        </span>`;
+      } else if (status === 'rejected') {
+        statusBadge = `<span class="px-3 py-1.5 rounded-lg text-xs font-label-md bg-error/10 text-error border border-error/20 inline-flex items-center gap-1">
+          <span class="material-symbols-outlined text-[14px]">cancel</span> Rejected
+        </span>`;
+      } else {
+        statusBadge = `<span class="px-3 py-1.5 rounded-lg text-xs font-label-md bg-surface-container text-on-surface-variant border border-outline-variant/30 inline-flex items-center gap-1">
+          <span class="material-symbols-outlined text-[14px]">schedule</span> Pending
+        </span>`;
+      }
+
+      return `
+        <div class="p-4 border border-outline-variant/30 rounded-xl flex items-center justify-between bg-surface-container-lowest">
+          <div>
+            <p class="font-label-md text-on-surface">${jobTitle}</p>
+            <p class="text-xs text-on-surface-variant mt-1">Applied on ${date}</p>
+          </div>
+          ${statusBadge}
+        </div>
+      `;
+    }).join('');
+
+  } catch (error) {
+    showToast(error.message || 'Failed to check status', 'error');
+  }
+}
