@@ -189,7 +189,7 @@ async function checkApplicationStatus() {
 
       let statusBadge;
       if (status === 'accepted') {
-        statusBadge = `<span class="px-3 py-1.5 rounded-lg text-xs font-label-md bg-[#1B5E20]/10 text-[#1B5E20] border border-[#1B5E20]/20 inline-flex items-center gap-1">
+        statusBadge = `<span class="px-3 py-1.5 rounded-lg text-xs font-label-md bg-[#4CAF50]/15 text-[#4CAF50] border border-[#4CAF50]/30 inline-flex items-center gap-1">
           <span class="material-symbols-outlined text-[14px]">check_circle</span> Accepted
         </span>`;
       } else if (status === 'rejected') {

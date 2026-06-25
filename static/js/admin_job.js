@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   function getStatusHtml(r) {
     const status = (r.status || 'pending').toLowerCase();
     if (status === 'accepted') {
-      return `<span class="px-3 py-1.5 rounded-lg text-xs font-label-md bg-[#1B5E20]/10 text-[#1B5E20] border border-[#1B5E20]/20 inline-flex items-center gap-1">
+      return `<span class="px-3 py-1.5 rounded-lg text-xs font-label-md bg-[#4CAF50]/15 text-[#4CAF50] border border-[#4CAF50]/30 inline-flex items-center gap-1">
         <span class="material-symbols-outlined text-[14px]">check_circle</span> Accepted
       </span>`;
     }
@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // pending — show accept/reject buttons
     return `
       <div class="flex items-center gap-2 justify-center">
-        <button onclick="event.stopPropagation(); updateStatus('${r.resume_id}', 'accepted')" class="px-3 py-1.5 rounded-lg text-xs font-label-md bg-[#1B5E20]/10 text-[#1B5E20] border border-[#1B5E20]/30 hover:bg-[#1B5E20]/20 transition-colors inline-flex items-center gap-1" title="Accept">
+        <button onclick="event.stopPropagation(); updateStatus('${r.resume_id}', 'accepted')" class="px-3 py-1.5 rounded-lg text-xs font-label-md bg-[#4CAF50]/15 text-[#4CAF50] border border-[#4CAF50]/40 hover:bg-[#4CAF50]/25 transition-colors inline-flex items-center gap-1" title="Accept">
           <span class="material-symbols-outlined text-[14px]">check</span> Accept
         </button>
         <button onclick="event.stopPropagation(); updateStatus('${r.resume_id}', 'rejected')" class="px-3 py-1.5 rounded-lg text-xs font-label-md bg-error/10 text-error border border-error/30 hover:bg-error/20 transition-colors inline-flex items-center gap-1" title="Reject">
@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function getRecommendationBadge(rec) {
-    if (rec.includes('Highly')) return 'bg-[#1B5E20]/10 text-[#1B5E20]';
+    if (rec.includes('Highly')) return 'bg-[#4CAF50]/15 text-[#4CAF50]';
     if (rec.includes('Consider')) return 'bg-[#B8860B]/10 text-[#B8860B]';
     if (rec.includes('Not')) return 'bg-error/10 text-error';
     return 'bg-primary/10 text-primary';
@@ -160,7 +160,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const statusLabel = (r.status || 'pending').toLowerCase();
     const statusBadge = statusLabel === 'accepted' 
-      ? '<span class="px-3 py-1.5 rounded-lg text-sm font-label-md bg-[#1B5E20]/10 text-[#1B5E20] border border-[#1B5E20]/20 inline-flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">check_circle</span> Accepted</span>'
+      ? '<span class="px-3 py-1.5 rounded-lg text-sm font-label-md bg-[#4CAF50]/15 text-[#4CAF50] border border-[#4CAF50]/30 inline-flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">check_circle</span> Accepted</span>'
       : statusLabel === 'rejected'
       ? '<span class="px-3 py-1.5 rounded-lg text-sm font-label-md bg-error/10 text-error border border-error/20 inline-flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">cancel</span> Rejected</span>'
       : '<span class="px-3 py-1.5 rounded-lg text-sm font-label-md bg-surface-container text-on-surface-variant border border-outline-variant/30 inline-flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">schedule</span> Pending</span>';
@@ -208,7 +208,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         </h4>
         <div class="flex flex-wrap gap-2">
           ${r.matched_skills ? r.matched_skills.split(',').map(s => 
-            `<span class="px-2 py-1 bg-[#1B5E20]/10 text-[#1B5E20] border border-[#1B5E20]/20 rounded-md text-xs font-label-md">${s.trim()}</span>`
+            `<span class="px-2 py-1 bg-[#4CAF50]/15 text-[#4CAF50] border border-[#4CAF50]/20 rounded-md text-xs font-label-md">${s.trim()}</span>`
           ).join('') : '<span class="text-sm text-on-surface-variant">None</span>'}
         </div>
       </div>
@@ -227,7 +227,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       <!-- Accept/Reject Actions in Drawer -->
       ${statusLabel === 'pending' ? `
       <div class="flex gap-3 mt-4 pt-4 border-t border-outline-variant/20">
-        <button onclick="updateStatus('${r.resume_id}', 'accepted'); closeDrawer();" class="btn-primary flex-1 justify-center bg-[#1B5E20] hover:bg-[#2E7D32]">
+        <button onclick="updateStatus('${r.resume_id}', 'accepted'); closeDrawer();" class="btn-primary flex-1 justify-center bg-[#4CAF50] hover:bg-[#66BB6A]">
           <span class="material-symbols-outlined">check_circle</span> Accept Candidate
         </button>
         <button onclick="updateStatus('${r.resume_id}', 'rejected'); closeDrawer();" class="btn-outline flex-1 justify-center border-error text-error hover:bg-error/10">
