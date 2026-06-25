@@ -134,35 +134,10 @@
         </span>
       </a>
 
-      <!-- Desktop Navigation -->
-      {% set active_page = active_page|default('home') %}
-      <div class="desktop-nav hidden md:flex items-center gap-1">
-        <a href="{{ url_for('index') }}" class="nav-link {{ 'active' if active_page == 'home' }}">Home</a>
-      </div>
 
-      <!-- Right Actions -->
-      <div class="flex items-center gap-3">
-        <!-- Dark Mode Toggle -->
-        <button id="darkModeToggle" class="btn-icon" aria-label="Toggle dark mode" title="Toggle dark mode">
-          <span class="material-symbols-outlined dark-icon text-[20px]">dark_mode</span>
-          <span class="material-symbols-outlined light-icon text-[20px] hidden">light_mode</span>
-        </button>
 
-        <!-- Mobile Menu Button -->
-        <button id="mobileMenuBtn" class="mobile-menu-btn btn-icon md:hidden !flex" aria-label="Open menu">
-          <span class="material-symbols-outlined text-[22px]">menu</span>
-        </button>
-      </div>
     </nav>
   </header>
-
-  <!-- Mobile Menu Overlay -->
-  <div id="mobileMenu" class="mobile-menu z-mobile-menu">
-    <button id="mobileMenuClose" class="absolute top-5 right-5 btn-icon" aria-label="Close menu">
-      <span class="material-symbols-outlined text-[24px]">close</span>
-    </button>
-    <a href="{{ url_for('index') }}" class="mobile-menu-link">Home</a>
-  </div>
 
   <!-- ==================== MAIN CONTENT ==================== -->
   <main class="flex-1 relative z-10 pt-[100px] pb-xl px-gutter max-w-[1440px] mx-auto w-full">
@@ -196,7 +171,7 @@
 
         <!-- Copyright -->
         <p class="text-label-sm font-label-sm text-outline">
-          &copy; 2024 ResumeMatch AI. All rights reserved.
+          &copy; 2026 ResumeMatch AI. All rights reserved.
         </p>
       </div>
     </div>
@@ -216,44 +191,6 @@
   </div>
 
   <!-- ==================== SCRIPTS ==================== -->
-  <script>
-    // Dark mode toggle
-    (function() {
-      const html = document.documentElement;
-      const toggle = document.getElementById('darkModeToggle');
-      const darkIcon = toggle.querySelector('.dark-icon');
-      const lightIcon = toggle.querySelector('.light-icon');
-
-      // Check saved preference
-      if (localStorage.getItem('darkMode') === 'true' ||
-          (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        html.classList.add('dark');
-        darkIcon.classList.add('hidden');
-        lightIcon.classList.remove('hidden');
-      }
-
-      toggle.addEventListener('click', () => {
-        html.classList.toggle('dark');
-        const isDark = html.classList.contains('dark');
-        localStorage.setItem('darkMode', isDark);
-        darkIcon.classList.toggle('hidden', isDark);
-        lightIcon.classList.toggle('hidden', !isDark);
-      });
-
-      // Mobile menu
-      const menuBtn = document.getElementById('mobileMenuBtn');
-      const menuClose = document.getElementById('mobileMenuClose');
-      const mobileMenu = document.getElementById('mobileMenu');
-
-      if (menuBtn && mobileMenu) {
-        menuBtn.addEventListener('click', () => mobileMenu.classList.add('open'));
-        menuClose.addEventListener('click', () => mobileMenu.classList.remove('open'));
-        mobileMenu.querySelectorAll('a').forEach(link => {
-          link.addEventListener('click', () => mobileMenu.classList.remove('open'));
-        });
-      }
-    })();
-  </script>
   <script src="{{ url_for('static', filename='js/app.js') }}?v=2"></script>
   {% block scripts %}{% endblock %}
 </body>
