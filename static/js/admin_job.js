@@ -15,11 +15,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const rankingsTableBody = document.getElementById('rankingsTableBody');
   const emptyRankings = document.getElementById('emptyRankings');
 
-  const drawer = document.getElementById('candidateDrawer');
-  const drawerOverlay = document.getElementById('drawerOverlay');
-  const closeDrawerBtn = document.getElementById('closeDrawerBtn');
-  const drawerContent = document.getElementById('drawerContent');
-
   let currentRankings = [];
 
   // ---- LOAD DATA ----
@@ -93,15 +88,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    rankingsTableBody.innerHTML = rankings.map((r, index) => `
-      <tr class="border-b border-outline-variant/20 hover:bg-surface-container-lowest/50 transition-colors cursor-pointer group" onclick="openCandidateDetails('${r.resume_id}')">
+    rankingsTableBody.innerHTML = rankings.map((r, index) => {
+      const name = r.candidate_name || 'Unknown';
+      const escapedName = name.replace(/'/g, "\\'");
+      return `
+      <tr class="border-b border-outline-variant/20 hover:bg-surface-container-lowest/50 transition-colors group">
         <td class="px-6 py-4">
           <div class="w-8 h-8 rounded-full ${index === 0 ? 'bg-[#FFD700]/20 text-[#B8860B]' : index === 1 ? 'bg-[#C0C0C0]/20 text-[#708090]' : index === 2 ? 'bg-[#CD7F32]/20 text-[#8B4513]' : 'bg-surface-container text-on-surface-variant'} flex items-center justify-center font-label-md mx-auto">
             ${index + 1}
           </div>
         </td>
         <td class="px-6 py-4">
-          <div class="font-label-md text-on-surface">${r.candidate_name}</div>
+          <div class="font-label-md text-on-surface">${name}</div>
           <div class="text-xs text-on-surface-variant">${r.email || 'No email'}</div>
         </td>
         <td class="px-6 py-4">
@@ -117,11 +115,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             ${r.recommendation}
           </span>
         </td>
+        <td class="px-6 py-4 text-center">
+          <button onclick="openPdfModal('${r.resume_id}', '${escapedName}')" class="btn-outline justify-center text-primary border-primary hover:bg-primary/10 px-3 py-1.5 text-sm rounded-lg flex items-center gap-1 mx-auto whitespace-nowrap">
+            <span class="material-symbols-outlined text-[16px]">visibility</span> View Resume
+          </button>
+        </td>
         <td class="px-6 py-4 text-center" id="status-${r.resume_id}">
           ${getStatusHtml(r)}
         </td>
       </tr>
-    `).join('');
+      `;
+    }).join('');
   }
 
   function getRecommendationBadge(rec) {
@@ -154,122 +158,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   };
 
-  // ---- DRAWER LOGIC ----
-  window.openCandidateDetails = function(resumeId) {
-    const r = currentRankings.find(x => x.resume_id === resumeId);
-    if (!r) return;
 
-    const statusLabel = (r.status || 'pending').toLowerCase();
-    const statusBadge = statusLabel === 'accepted' 
-      ? '<span class="px-3 py-1.5 rounded-lg text-sm font-label-md bg-[#4CAF50]/15 text-[#4CAF50] border border-[#4CAF50]/30 inline-flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">check_circle</span> Accepted</span>'
-      : statusLabel === 'rejected'
-      ? '<span class="px-3 py-1.5 rounded-lg text-sm font-label-md bg-error/10 text-error border border-error/20 inline-flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">cancel</span> Rejected</span>'
-      : '<span class="px-3 py-1.5 rounded-lg text-sm font-label-md bg-surface-container text-on-surface-variant border border-outline-variant/30 inline-flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">schedule</span> Pending</span>';
-
-    const name = r.candidate_name || 'Unknown';
-    const firstLetter = name.trim().charAt(0).toUpperCase() || '?';
-    const escapedName = name.replace(/'/g, "\\'");
-
-    drawerContent.innerHTML = `
-      <!-- Header Info -->
-      <div class="flex items-center gap-4 mb-2">
-        <div class="w-16 h-16 rounded-full bg-primary/10 text-primary flex items-center justify-center font-display text-2xl">
-          ${firstLetter}
-        </div>
-        <div>
-          <h3 class="font-headline-md text-on-surface">${name}</h3>
-          <p class="text-sm text-on-surface-variant flex items-center gap-4">
-            <span><span class="material-symbols-outlined text-[14px] align-middle">mail</span> ${r.email || 'N/A'}</span>
-            <span><span class="material-symbols-outlined text-[14px] align-middle">phone</span> ${r.phone || 'N/A'}</span>
-          </p>
-        </div>
-      </div>
-
-      <!-- Status & Score -->
-      <div class="grid grid-cols-2 gap-4">
-        <div class="bg-surface-container rounded-xl p-4 text-center border border-outline-variant/20">
-          <p class="text-sm text-on-surface-variant mb-1">Match Score</p>
-          <p class="font-display text-3xl text-primary">${Math.round(r.match_score || 0)}<span class="text-lg text-on-surface-variant">%</span></p>
-        </div>
-        <div class="bg-surface-container rounded-xl p-4 text-center border border-outline-variant/20 flex flex-col items-center justify-center">
-          <p class="text-sm text-on-surface-variant mb-2">Status</p>
-          ${statusBadge}
-        </div>
-      </div>
-
-      <!-- Recommendation -->
-      <div class="p-4 rounded-xl ${getRecommendationBadge(r.recommendation)} border border-current/20 flex items-start gap-3">
-        <span class="material-symbols-outlined">lightbulb</span>
-        <div>
-          <p class="font-label-md">AI Recommendation</p>
-          <p class="text-sm opacity-90">${r.recommendation || 'N/A'}</p>
-        </div>
-      </div>
-
-      <!-- Skills -->
-      <div>
-        <h4 class="font-label-md text-on-surface mb-3 flex items-center gap-2">
-          <span class="material-symbols-outlined text-[18px]">check_circle</span> Matched Skills
-        </h4>
-        <div class="flex flex-wrap gap-2">
-          ${r.matched_skills ? r.matched_skills.split(',').map(s => 
-            `<span class="px-2 py-1 bg-[#4CAF50]/15 text-[#4CAF50] border border-[#4CAF50]/20 rounded-md text-xs font-label-md">${s.trim()}</span>`
-          ).join('') : '<span class="text-sm text-on-surface-variant">None</span>'}
-        </div>
-      </div>
-
-      <div class="mt-2">
-        <h4 class="font-label-md text-on-surface mb-3 flex items-center gap-2">
-          <span class="material-symbols-outlined text-[18px]">cancel</span> Missing Skills
-        </h4>
-        <div class="flex flex-wrap gap-2">
-          ${r.missing_skills ? r.missing_skills.split(',').map(s => 
-            `<span class="px-2 py-1 bg-error/10 text-error border border-error/20 rounded-md text-xs font-label-md">${s.trim()}</span>`
-          ).join('') : '<span class="text-sm text-on-surface-variant">None</span>'}
-        </div>
-      </div>
-
-      <!-- PDF Actions -->
-      <div class="flex gap-3 mt-4 pt-4 border-t border-outline-variant/20">
-        <button onclick="openPdfModal('${r.resume_id}', '${escapedName}')" class="btn-outline flex-1 justify-center text-primary border-primary hover:bg-primary/10">
-          <span class="material-symbols-outlined">visibility</span> View Resume
-        </button>
-        <a href="/api/admin/resumes/${r.resume_id}/file?download=true" class="btn-outline flex-1 justify-center text-primary border-primary hover:bg-primary/10 text-center flex items-center gap-2 no-underline" download>
-          <span class="material-symbols-outlined">download</span> Download
-        </a>
-      </div>
-
-      <!-- Accept/Reject Actions in Drawer -->
-      ${statusLabel === 'pending' ? `
-      <div class="flex gap-3 mt-4">
-        <button onclick="updateStatus('${r.resume_id}', 'accepted'); closeDrawer();" class="btn-primary flex-1 justify-center bg-[#4CAF50] hover:bg-[#66BB6A]">
-          <span class="material-symbols-outlined">check_circle</span> Accept Candidate
-        </button>
-        <button onclick="updateStatus('${r.resume_id}', 'rejected'); closeDrawer();" class="btn-outline flex-1 justify-center border-error text-error hover:bg-error/10">
-          <span class="material-symbols-outlined">cancel</span> Reject Candidate
-        </button>
-      </div>` : ''}
-    `;
-
-    drawerOverlay.classList.remove('hidden');
-    // small timeout to allow display:block to apply before opacity transition
-    setTimeout(() => {
-      drawerOverlay.classList.remove('opacity-0');
-      drawer.classList.remove('translate-x-full');
-    }, 10);
-  };
-
-  function closeDrawer() {
-    drawer.classList.add('translate-x-full');
-    drawerOverlay.classList.add('opacity-0');
-    setTimeout(() => {
-      drawerOverlay.classList.add('hidden');
-    }, 300);
-  }
-
-  window.closeDrawer = closeDrawer;
-  closeDrawerBtn.addEventListener('click', closeDrawer);
-  drawerOverlay.addEventListener('click', closeDrawer);
 
   // ---- PDF MODAL LOGIC ----
   const pdfModal = document.getElementById('pdfModal');
