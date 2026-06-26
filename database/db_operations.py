@@ -93,6 +93,7 @@ def save_resume(
     resume_text: str,
     skills: str,
     job_id: str | None = None,
+    file_data: str | None = None,
 ) -> dict[str, Any]:
     """Insert a parsed resume record and return the created row."""
     try:
@@ -106,6 +107,7 @@ def save_resume(
                 "resume_text": resume_text,
                 "skills": skills,
                 "job_id": job_id,
+                "file_data": file_data,
             })
             .execute()
         )
@@ -176,6 +178,23 @@ def get_applications_by_email(email: str) -> list[dict[str, Any]]:
         return response.data
     except Exception as exc:
         raise RuntimeError(f"Failed to fetch applications for {email}: {exc}") from exc
+
+
+def get_resume_file(resume_id: str) -> dict[str, Any]:
+    """Fetch only the candidate name and file_data for a resume."""
+    try:
+        _require_client()
+        response = (
+            supabase.table("resumes")
+            .select("candidate_name, file_data")
+            .eq("id", resume_id)
+            .execute()
+        )
+        if not response.data:
+            raise RuntimeError(f"Resume {resume_id} not found.")
+        return response.data[0]
+    except Exception as exc:
+        raise RuntimeError(f"Failed to fetch resume file: {exc}") from exc
 
 
 # ── Screening Results ────────────────────────────────────────────────────────

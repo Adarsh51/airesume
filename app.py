@@ -5,6 +5,8 @@ app.py — Main Flask application for ResumeMatch AI.
 from __future__ import annotations
 
 import os
+import base64
+import io
 from dotenv import load_dotenv
 
 # Load .env before any other app-level import so config picks up the values
@@ -20,6 +22,7 @@ from flask import (
     redirect,
     url_for,
     flash,
+    send_file,
 )
 from flask_cors import CORS
 
@@ -34,6 +37,7 @@ from database.db_operations import (
     get_resumes_by_job,
     update_resume_status,
     get_applications_by_email,
+    get_resume_file,
 )
 from services.pdf_parser import parse_resume
 from services.skill_matcher import match_skills
@@ -221,6 +225,8 @@ def api_candidate_upload():
         final_phone = phone_override if phone_override else None
 
         skills_csv = ", ".join(parsed["skills"])
+        file_b64 = base64.b64encode(file_bytes).decode('utf-8')
+        
         resume_record = save_resume(
             candidate_name=final_name,
             email=final_email,
@@ -228,6 +234,7 @@ def api_candidate_upload():
             resume_text=parsed["resume_text"],
             skills=skills_csv,
             job_id=job_id,
+            file_data=file_b64,
         )
 
         return jsonify({
@@ -292,6 +299,29 @@ def api_get_rankings(job_id: str):
             "rankings": rankings
         }), 200
 
+    except RuntimeError as exc:
+        return _error(str(exc), 500)
+
+
+@app.route("/api/admin/resumes/<resume_id>/file", methods=["GET"])
+def api_get_resume_file(resume_id: str):
+    """Return the PDF file of a resume."""
+    try:
+        resume = get_resume_file(resume_id)
+        if not resume.get("file_data"):
+            return _error("File not found for this resume", 404)
+            
+        file_bytes = base64.b64decode(resume["file_data"])
+        download = request.args.get("download", "").lower() == "true"
+        
+        filename = f"{resume.get('candidate_name', 'Resume').replace(' ', '_')}.pdf"
+        
+        return send_file(
+            io.BytesIO(file_bytes),
+            mimetype="application/pdf",
+            as_attachment=download,
+            download_name=filename if download else None
+        )
     except RuntimeError as exc:
         return _error(str(exc), 500)
 

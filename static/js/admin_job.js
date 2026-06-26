@@ -224,9 +224,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         </div>
       </div>
 
+      <!-- PDF Actions -->
+      <div class="flex gap-3 mt-4 pt-4 border-t border-outline-variant/20">
+        <button onclick="openPdfModal('${r.resume_id}', '${r.candidate_name.replace(/'/g, "\\'")}')" class="btn-outline flex-1 justify-center text-primary border-primary hover:bg-primary/10">
+          <span class="material-symbols-outlined">visibility</span> View Resume
+        </button>
+        <a href="/api/admin/resumes/${r.resume_id}/file?download=true" class="btn-outline flex-1 justify-center text-primary border-primary hover:bg-primary/10 text-center flex items-center gap-2 no-underline" download>
+          <span class="material-symbols-outlined">download</span> Download
+        </a>
+      </div>
+
       <!-- Accept/Reject Actions in Drawer -->
       ${statusLabel === 'pending' ? `
-      <div class="flex gap-3 mt-4 pt-4 border-t border-outline-variant/20">
+      <div class="flex gap-3 mt-4">
         <button onclick="updateStatus('${r.resume_id}', 'accepted'); closeDrawer();" class="btn-primary flex-1 justify-center bg-[#4CAF50] hover:bg-[#66BB6A]">
           <span class="material-symbols-outlined">check_circle</span> Accept Candidate
         </button>
@@ -255,6 +265,53 @@ document.addEventListener('DOMContentLoaded', async () => {
   window.closeDrawer = closeDrawer;
   closeDrawerBtn.addEventListener('click', closeDrawer);
   drawerOverlay.addEventListener('click', closeDrawer);
+
+  // ---- PDF MODAL LOGIC ----
+  const pdfModal = document.getElementById('pdfModal');
+  const pdfModalContent = document.getElementById('pdfModalContent');
+  const pdfViewer = document.getElementById('pdfViewer');
+  const closePdfModalBtn = document.getElementById('closePdfModal');
+  const pdfModalTitle = document.getElementById('pdfModalTitle');
+  const pdfDownloadBtn = document.getElementById('pdfDownloadBtn');
+  const pdfLoading = document.getElementById('pdfLoading');
+
+  window.openPdfModal = function(resumeId, candidateName) {
+    pdfModalTitle.textContent = `${candidateName} - Resume`;
+    pdfDownloadBtn.href = `/api/admin/resumes/${resumeId}/file?download=true`;
+    
+    // Show loading spinner
+    pdfLoading.classList.remove('hidden');
+    pdfViewer.classList.add('opacity-0');
+    
+    // Set iframe source
+    pdfViewer.src = `/api/admin/resumes/${resumeId}/file`;
+    
+    // Hide loading when iframe loads
+    pdfViewer.onload = () => {
+      pdfLoading.classList.add('hidden');
+      pdfViewer.classList.remove('opacity-0');
+    };
+
+    pdfModal.classList.remove('hidden');
+    setTimeout(() => {
+      pdfModal.classList.remove('opacity-0');
+      pdfModalContent.classList.remove('scale-95');
+    }, 10);
+  };
+
+  function closePdfModal() {
+    pdfModal.classList.add('opacity-0');
+    pdfModalContent.classList.add('scale-95');
+    setTimeout(() => {
+      pdfModal.classList.add('hidden');
+      pdfViewer.src = ''; // Clear iframe memory
+    }, 300);
+  }
+
+  closePdfModalBtn.addEventListener('click', closePdfModal);
+  pdfModal.addEventListener('click', (e) => {
+    if (e.target === pdfModal) closePdfModal();
+  });
 
   // Init
   loadJobData();
