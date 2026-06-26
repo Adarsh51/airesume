@@ -125,6 +125,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function getRecommendationBadge(rec) {
+    if (!rec) return 'bg-primary/10 text-primary';
     if (rec.includes('Highly')) return 'bg-[#4CAF50]/15 text-[#4CAF50]';
     if (rec.includes('Consider')) return 'bg-[#B8860B]/10 text-[#B8860B]';
     if (rec.includes('Not')) return 'bg-error/10 text-error';
@@ -165,14 +166,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       ? '<span class="px-3 py-1.5 rounded-lg text-sm font-label-md bg-error/10 text-error border border-error/20 inline-flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">cancel</span> Rejected</span>'
       : '<span class="px-3 py-1.5 rounded-lg text-sm font-label-md bg-surface-container text-on-surface-variant border border-outline-variant/30 inline-flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">schedule</span> Pending</span>';
 
+    const name = r.candidate_name || 'Unknown';
+    const firstLetter = name.trim().charAt(0).toUpperCase() || '?';
+    const escapedName = name.replace(/'/g, "\\'");
+
     drawerContent.innerHTML = `
       <!-- Header Info -->
       <div class="flex items-center gap-4 mb-2">
         <div class="w-16 h-16 rounded-full bg-primary/10 text-primary flex items-center justify-center font-display text-2xl">
-          ${r.candidate_name.charAt(0).toUpperCase()}
+          ${firstLetter}
         </div>
         <div>
-          <h3 class="font-headline-md text-on-surface">${r.candidate_name}</h3>
+          <h3 class="font-headline-md text-on-surface">${name}</h3>
           <p class="text-sm text-on-surface-variant flex items-center gap-4">
             <span><span class="material-symbols-outlined text-[14px] align-middle">mail</span> ${r.email || 'N/A'}</span>
             <span><span class="material-symbols-outlined text-[14px] align-middle">phone</span> ${r.phone || 'N/A'}</span>
@@ -184,7 +189,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       <div class="grid grid-cols-2 gap-4">
         <div class="bg-surface-container rounded-xl p-4 text-center border border-outline-variant/20">
           <p class="text-sm text-on-surface-variant mb-1">Match Score</p>
-          <p class="font-display text-3xl text-primary">${Math.round(r.match_score)}<span class="text-lg text-on-surface-variant">%</span></p>
+          <p class="font-display text-3xl text-primary">${Math.round(r.match_score || 0)}<span class="text-lg text-on-surface-variant">%</span></p>
         </div>
         <div class="bg-surface-container rounded-xl p-4 text-center border border-outline-variant/20 flex flex-col items-center justify-center">
           <p class="text-sm text-on-surface-variant mb-2">Status</p>
@@ -197,7 +202,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         <span class="material-symbols-outlined">lightbulb</span>
         <div>
           <p class="font-label-md">AI Recommendation</p>
-          <p class="text-sm opacity-90">${r.recommendation}</p>
+          <p class="text-sm opacity-90">${r.recommendation || 'N/A'}</p>
         </div>
       </div>
 
@@ -226,7 +231,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       <!-- PDF Actions -->
       <div class="flex gap-3 mt-4 pt-4 border-t border-outline-variant/20">
-        <button onclick="openPdfModal('${r.resume_id}', '${r.candidate_name.replace(/'/g, "\\'")}')" class="btn-outline flex-1 justify-center text-primary border-primary hover:bg-primary/10">
+        <button onclick="openPdfModal('${r.resume_id}', '${escapedName}')" class="btn-outline flex-1 justify-center text-primary border-primary hover:bg-primary/10">
           <span class="material-symbols-outlined">visibility</span> View Resume
         </button>
         <a href="/api/admin/resumes/${r.resume_id}/file?download=true" class="btn-outline flex-1 justify-center text-primary border-primary hover:bg-primary/10 text-center flex items-center gap-2 no-underline" download>
