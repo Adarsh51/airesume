@@ -116,8 +116,10 @@ document.addEventListener('DOMContentLoaded', async () => {
           </span>
         </td>
         <td class="px-6 py-4 text-center">
-          <button onclick="openPdfModal('${r.resume_id}', '${escapedName}')" class="btn-outline justify-center text-primary border-primary hover:bg-primary/10 px-3 py-1.5 text-sm rounded-lg flex items-center gap-1 mx-auto whitespace-nowrap">
-            <span class="material-symbols-outlined text-[16px]">visibility</span> View Resume
+          <button onclick="openPdfModal('${r.resume_id}', '${escapedName}')" class="group relative px-4 py-2 bg-gradient-to-r from-primary to-tertiary-container text-white font-label-md rounded-xl flex items-center justify-center gap-2 mx-auto overflow-hidden shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-300 whitespace-nowrap">
+            <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
+            <span class="material-symbols-outlined text-[18px] relative z-10">visibility</span>
+            <span class="relative z-10">View Resume</span>
           </button>
         </td>
         <td class="px-6 py-4 text-center" id="status-${r.resume_id}">
